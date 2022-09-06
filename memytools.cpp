@@ -1,30 +1,39 @@
-
-#include "cbase.h"
+// obfuscate strings in this lib?
+// requires https://github.com/adamyaxley/Obfuscate
+// and >= c++ 14 
 #include <util/obfuscate.h>
 #include "memytools.h"
+
+#ifndef AY_OBFUSCATE
+    #define AY_OBFUSCATE
+#endif
 
 #define memydbg yep
 
 #ifdef memydbg
-    #define goodcolor   Color(90, 240, 90, 255) // green
-    #define okcolor     Color(246, 190, 0, 255) // yellow
+    #define goodcolor   Color(000, 255, 000, 255) // green
+    #define okcolor     Color(255, 190, 000, 255) // yellow
 #endif
 
 
+memy_init _memy_init;
+memy_init::memy_init() : CAutoGameSystem("")
+{
+}
 
-modbin* engine_bin   = new modbin{ 0xFEEF, 0x69 };
-modbin* client_bin   = new modbin{ 0xFEEF, 0x69 };
-modbin* server_bin   = new modbin{ 0xFEEF, 0x69 };
-modbin* vgui_bin     = new modbin{ 0xFEEF, 0x69 };
-modbin* tier0_bin    = new modbin{ 0xFEEF, 0x69 };
+modbin* engine_bin = new modbin{ 0x0, 0x0 };
+modbin* vgui_bin = new modbin{ 0x0, 0x0 };
+modbin* tier0_bin = new modbin{ 0x0, 0x0 };
+modbin* client_bin = new modbin{ 0x0, 0x0 };
+modbin* server_bin = new modbin{ 0x0, 0x0 };
 
 char bins_list[][MAX_PATH] =
 {
-    "engine",
-    "client",
-    "server",
-    "vguimatsurface",
-    "tier0",
+    {},
+    {},
+    {},
+    {},
+    {},
 };
 
 modbin* modbins_list[]
@@ -36,36 +45,23 @@ modbin* modbins_list[]
     tier0_bin,
 };
 
-memy_init _memy_init;
-memy_init::memy_init() : CAutoGameSystem("")
-{
-}
-
 memy _memy;
 memy::memy()
 {
+    V_strncpy(bins_list[0], AY_OBFUSCATE("engine"),         16);
+    V_strncpy(bins_list[1], AY_OBFUSCATE("vguimatsurface"), 16);
+    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          16);
+    V_strncpy(bins_list[3], AY_OBFUSCATE("client"),         16);
+    V_strncpy(bins_list[4], AY_OBFUSCATE("server"),         16);
 }
-
-
 
 bool memy_init::Init()
 {
+    // memy();
     memy::InitAllBins();
 
     Warning("[2] engine bin -> %x\n", engine_bin->addr);
     return true;
-
-/*
-    if (!engine_bin || !vgui_bin)
-    {
-    #ifdef dbging
-        const char* failedinit = AY_OBFUSCATE("Failed init!\n");
-        Warning(AY_OBFUSCATE("%s"), failedinit);
-    #else
-        // CHooks::setinsecure();
-    #endif
-    }
-    return true;*/
 }
 
 
@@ -73,28 +69,18 @@ bool memy::InitAllBins()
 {
     // memy();
     size_t sbin_size = sizeof(bins_list) / sizeof(bins_list[0]);
-    Warning("-> sbin size = %i\n", sbin_size);
-
-    Warning("engine bin 0 -> %x\n", engine_bin->addr);
-    Warning("engine bin 0 -> %p\n", engine_bin);
 
     // loop thru our bins
     for (size_t ibin = 0; ibin < sbin_size; ibin++)
     {
         InitSingleBin(bins_list[ibin], modbins_list[ibin]);
-        Warning("->mbin %s -> %x %x\n", bins_list[ibin], modbins_list[ibin]->addr, modbins_list[ibin]->size);
     }
-
-    Warning("engine bin 1 -> %x\n", engine_bin->addr);
 
     return true;
 }
 
 bool memy::InitSingleBin(const char* binname, modbin* mbin)
 {
-    Warning("-> ::InitSingleBin\n");
-    Warning("mbin bin 0 -> %p\n", mbin);
-
     // binname + .dll
     char realbinname[256] = {};
 
@@ -122,18 +108,20 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         if (!mbin->addr || !mbin->size)
         {
             #ifdef memydbg
-                ConColorMsg(okcolor, "memytools::InitSingleBin -> something fucking EXPLODED\n");
+                ConColorMsg(okcolor, "memy::InitSingleBin -> something fucking EXPLODED\n");
             #endif
 
             return false;
         }
         
         #ifdef memydbg
-            ConColorMsg(okcolor, "memytools::InitSingleBin -> mbase %x, msize %i\n", mbin->addr, mbin->size);
+            ConColorMsg(okcolor, "memy::InitSingleBin -> mbase %x, msize %i\n", mbin->addr, mbin->size);
         #endif
 
     #else
         // binname + .so
+
+        // funny special case
         if (strcmp(binname, "engine"))
         {
             #ifdef OF_CLIENT_DLL
@@ -151,7 +139,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         size_t         msize = 0;
         if (GetModuleInformation(binname, &mbase, &msize))
         {
-            Warning("memytools::InitSingleBin -> GetModuleInformation failed!\n");
+            Warning("memy::InitSingleBin -> GetModuleInformation failed!\n");
             return false;
         }
 
@@ -166,8 +154,8 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
 {
     if (!data || !pattern || !sigsize)
     {
-        #ifdef dbging
-            Warning("CBinary::DataCompare -> Couldn't grab data %p, pattern %p, nor patternsize %i\n", data, pattern, sigsize);
+        #ifdef memydbg
+            Warning("memy::DataCompare -> Couldn't grab data %p, pattern %p, nor patternsize %i\n", data, pattern, sigsize);
         #endif
         return false;
     }
@@ -175,7 +163,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
     for
     (
         size_t head = 0;
-        head < sigsize;             // sigsize doesn't start from 0 so we don't need to <=
+        head < sigsize; // sigsize doesn't start from 0 so we don't need to <=
         (head++, pattern++, data++)
     )
     {
@@ -185,7 +173,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
         #ifdef dbging
         if (head >= sigsize - 6)
         {
-            Warning("CBinary::DataCompare -> head = %i; char = %.2x\n", head, pattern_byte);
+            Warning("memy::DataCompare -> head = %i; char = %.2x\n", head, pattern_byte);
         }
         #endif
 
@@ -206,7 +194,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
     }
 
     #ifdef memydbg
-        Warning("CMemyTools::DataCompare -> Grabbed pattern %p = %s, at %p + modsize\n", data, pattern, data);
+        Warning("memy::DataCompare -> Grabbed pattern %p = %s, at %p + modsize\n", data, pattern, data);
     #endif
 
     return true;
@@ -223,7 +211,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
         V_binarytohex
         (
             reinterpret_cast<const byte*>(pattern),
-            (sigsize * 2) + 1,
+            (sigsize * 2) + 1, // sigsize -> bytes + nullterm
             hexstr,
             (sigsize * 2) + 1
         );
@@ -246,7 +234,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
         if (comparedata(addr, pattern , sigsize))
         {
             #ifdef memydbg
-                ConColorMsg(goodcolor, "CMemyTools::FindPattern -> found pattern %s, %i, %i!\n", hexstr, sigsize, offset);
+                ConColorMsg(goodcolor, "memy::FindPattern -> found pattern %s, %i, %i!\n", hexstr, sigsize, offset);
             #endif
 
             return reinterpret_cast<uintptr_t>(addr + offset);
@@ -254,7 +242,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
     }
 
     #ifdef memydbg
-        Warning("CMemyTools::FindPattern -> Failed, pattern %s, %i, %i!\n", hexstr, sigsize, offset);
+        Warning("memy::FindPattern -> Failed, pattern %s, %i, %i!\n", hexstr, sigsize, offset);
     #endif
 
     return NULL;
