@@ -22,7 +22,7 @@ x.vpc
             }
             // </memytools>
 ...
-
+            // example files that depend on memy functions
             $File   "$SRCDIR\game\shared\mempatch.h"
             $File   "$SRCDIR\game\shared\mempatch.cpp"
             {
