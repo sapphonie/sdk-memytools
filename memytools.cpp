@@ -1,7 +1,7 @@
 // obfuscate strings in this lib?
 // requires https://github.com/adamyaxley/Obfuscate
 // and >= c++ 14 
-// #include <util/obfuscate.h>
+#include <util/obfuscate.h>
 #include "memytools.h"
 
 #ifndef AY_OBFUSCATE
