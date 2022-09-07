@@ -21,11 +21,11 @@ memy_init::memy_init() : CAutoGameSystem("")
 {
 }
 
-modbin* engine_bin = new modbin{ 0x0, 0x0 };
-modbin* vgui_bin = new modbin{ 0x0, 0x0 };
-modbin* tier0_bin = new modbin{ 0x0, 0x0 };
-modbin* client_bin = new modbin{ 0x0, 0x0 };
-modbin* server_bin = new modbin{ 0x0, 0x0 };
+modbin* engine_bin = new modbin();
+modbin* vgui_bin   = new modbin();
+modbin* tier0_bin  = new modbin();
+modbin* client_bin = new modbin();
+modbin* server_bin = new modbin();
 
 char bins_list[][MAX_PATH] =
 {
