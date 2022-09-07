@@ -281,7 +281,8 @@ bool memy::SetMemoryProtection(void* addr, size_t protlen, int wantprot)
             }
         }
 
-        return VirtualProtect(addr, protlen, prot, &tmp);
+        // BOOL is typedef'd as an int on Windows, sometimes (lol), bang bang it to convert it to a bool proper
+        return !!(VirtualProtect(addr, protlen, prot, &tmp));
     #else
     // POSIX
         return mprotect( LALIGN(addr), protlen + LALDIF(addr), wantprot) == 0;
