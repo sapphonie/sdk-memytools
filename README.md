@@ -6,7 +6,9 @@ pseudolibrary for memory patching/detouring in [Valve Software SDK2013](https://
 ```
 x.vpc
 ...
-            // <memytools>
+        // <memytools>
+        $Folder	"memy"
+        {
             $File   "$SRCDIR\game\shared\memy\memytools.h"
             $File   "$SRCDIR\game\shared\memy\bytepatch.hpp"
             $File   "$SRCDIR\game\shared\memy\detourhook.hpp"
@@ -20,7 +22,8 @@ x.vpc
                     }
                 }
             }
-            // </memytools>
+        }
+        // </memytools>
 ...
             // example files that depend on memy functions
             $File   "$SRCDIR\game\shared\mempatch.h"
