@@ -39,13 +39,13 @@ public:
     //     original.resize(size);
     //     Copy();
     // }
-    BytePatch(uintptr_t addr, std::vector<unsigned char> patch) : addr{ reinterpret_cast<void *>(addr) }, patch_bytes{ patch }
+    BytePatch(uintptr_t addr, std::vector<unsigned char> patch) : addr( reinterpret_cast<void *>(addr) ), patch_bytes( patch )
     {
         size = patch.size();
         original.resize(size);
         Copy();
     }
-    BytePatch(void *addr, std::vector<unsigned char> patch) : addr{ addr }, patch_bytes{ patch }
+    BytePatch(void *addr, std::vector<unsigned char> patch) : addr( addr ), patch_bytes( patch )
     {
         size = patch.size();
         original.resize(size);
