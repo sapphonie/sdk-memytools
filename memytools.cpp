@@ -1,8 +1,15 @@
 // obfuscate strings in this lib?
 // requires https://github.com/adamyaxley/Obfuscate
-// and >= c++ 14 
+// and >= c++ 14
 #include <util/obfuscate.h>
 #include "memytools.h"
+
+// insert your defines here
+#if defined (OF_CLIENT_DLL) || defined (TF_CLASSIC_CLIENT)
+    #define cli yep
+#elif defined (OF_DLL) || defined (TF_CLASSIC)
+    #define srv yep
+#endif
 
 #ifndef AY_OBFUSCATE
     #define AY_OBFUSCATE
@@ -21,38 +28,60 @@ memy_init::memy_init() : CAutoGameSystem("")
 {
 }
 
-modbin* engine_bin = new modbin();
-modbin* vgui_bin   = new modbin();
-modbin* tier0_bin  = new modbin();
-modbin* client_bin = new modbin();
-modbin* server_bin = new modbin();
+// shared between client and server
+modbin* engine_bin     = new modbin();
+modbin* server_bin     = new modbin();
+modbin* tier0_bin      = new modbin();
+
+// server only
+#ifdef srv
+modbin* tier0_srv_bin  = new modbin();
+#endif
+
+// client only
+#ifdef cli
+modbin* vgui_bin       = new modbin();
+modbin* client_bin     = new modbin();
+#endif
 
 char bins_list[][MAX_PATH] =
 {
     {},
     {},
     {},
+#if defined (srv) && defined (POSIX)
+    {},
+#elif defined (cli)
     {},
     {},
+#endif
 };
 
 modbin* modbins_list[]
 {
     engine_bin,
-    client_bin,
     server_bin,
-    vgui_bin,
     tier0_bin,
+#if defined (srv) && defined (POSIX)
+    tier0_srv_bin,
+#elif defined (cli)
+    vgui_bin,
+    client_bin,
+#endif
 };
 
 memy _memy;
 memy::memy()
 {
-    V_strncpy(bins_list[0], AY_OBFUSCATE("engine"),         16);
-    V_strncpy(bins_list[1], AY_OBFUSCATE("vguimatsurface"), 16);
-    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          16);
-    V_strncpy(bins_list[3], AY_OBFUSCATE("client"),         16);
-    V_strncpy(bins_list[4], AY_OBFUSCATE("server"),         16);
+    V_strncpy(bins_list[0], AY_OBFUSCATE("engine"),         32);
+    V_strncpy(bins_list[1], AY_OBFUSCATE("server"),         32);
+    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          32);
+#if defined (srv) && defined (POSIX)
+    V_strncpy(bins_list[3], AY_OBFUSCATE("tier0_srv"),      32);
+#elif defined (cli)
+    V_strncpy(bins_list[3], AY_OBFUSCATE("vguimatsurface"), 32);
+    V_strncpy(bins_list[4], AY_OBFUSCATE("client"),         32);
+#endif
 }
 
 bool memy_init::Init()
@@ -60,7 +89,6 @@ bool memy_init::Init()
     // memy();
     memy::InitAllBins();
 
-    Warning("[2] engine bin -> %x\n", engine_bin->addr);
     return true;
 }
 
@@ -73,7 +101,10 @@ bool memy::InitAllBins()
     // loop thru our bins
     for (size_t ibin = 0; ibin < sbin_size; ibin++)
     {
-        InitSingleBin(bins_list[ibin], modbins_list[ibin]);
+        if (!InitSingleBin(bins_list[ibin], modbins_list[ibin]))
+        {
+            Error("[MEMY] Couldn't init %s!", bins_list[ibin]);
+        }
     }
 
     return true;
@@ -91,9 +122,9 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         mhandle = GetModuleHandleA(realbinname);
         if (!mhandle)
         {
-            #ifdef dbging
+            //#ifdef dbging
                 Warning("memytools::InitSingleBin -> Couldn't grab handle for bin %s = %s!\n", binname, realbinname);
-            #endif
+            // #endif
 
             return false;
         }
@@ -113,7 +144,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
 
             return false;
         }
-        
+
         #ifdef memydbg
             ConColorMsg(okcolor, "memy::InitSingleBin -> mbase %x, msize %i\n", mbin->addr, mbin->size);
         #endif
@@ -121,25 +152,32 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
     #else
         // binname + .so
 
-        // funny special case
-        if (strcmp(binname, "engine"))
+        // funny special cases
+        if (strcmp(binname, "engine") == 0)
         {
-            #ifdef OF_CLIENT_DLL
-                // V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
+            #if defined (cli)
+                ;
             #else
                 V_snprintf(realbinname, sizeof(realbinname), "%s_srv.so", binname);
             #endif
+        }
+        // linux loads libtier0.so and libtier0_srv.so, and they are different. Yay!
+        else if (strstr(binname, "tier0"))
+        {
+            V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
         }
         else
         {
             V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
         }
-
+        Warning("-> binname = %s\n", realbinname);
         void*          mbase = nullptr;
         size_t         msize = 0;
-        if (GetModuleInformation(binname, &mbase, &msize))
+        if (GetModuleInformation(realbinname, &mbase, &msize))
         {
-            Warning("memy::InitSingleBin -> GetModuleInformation failed!\n");
+            #ifdef memydbg
+                Warning("memy::InitSingleBin -> GetModuleInformation failed!\n");
+            #endif
             return false;
         }
 
@@ -297,7 +335,10 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
     // this is the only way to do this on linux, lol
     FILE *f = fopen("/proc/self/maps", "r");
     if (!f)
+    {
+        Warning("memy::GetModInfo -> Couldn't get proc->self->maps\n");
         return 1;
+    }
 
     char buf[PATH_MAX+100];
     while (!feof(f))
@@ -319,6 +360,8 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
 
         if (strcmp(basename(mapname), name) == 0 && perm[0] == 'r' && perm[2] == 'x')
         {
+            Warning("perm = %s\n", perm);
+
             *base = (void*)begin;
             *length = (size_t)end-begin;
             fclose(f);
@@ -327,9 +370,7 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
     }
 
     fclose(f);
+    Warning("memy::GetModInfo -> Couldn't find info for modname %s\n", name);
     return 2;
 }
 #endif
-
-
-
