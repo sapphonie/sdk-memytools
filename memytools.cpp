@@ -70,11 +70,11 @@ memy::memy()
 {
     V_strncpy(bins_list[0], AY_OBFUSCATE("engine"),         32);
     V_strncpy(bins_list[1], AY_OBFUSCATE("server"),         32);
-    V_strncpy(bins_list[1], AY_OBFUSCATE("tier0"),          32);
+    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          32);
     // client only
 #if defined (cli)
-    V_strncpy(bins_list[2], AY_OBFUSCATE("vguimatsurface"), 32);
-    V_strncpy(bins_list[3], AY_OBFUSCATE("client"),         32);
+    V_strncpy(bins_list[3], AY_OBFUSCATE("vguimatsurface"), 32);
+    V_strncpy(bins_list[4], AY_OBFUSCATE("client"),         32);
 #endif
 }
 
