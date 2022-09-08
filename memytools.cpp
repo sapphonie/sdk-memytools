@@ -197,7 +197,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         }
         else
         {
-            V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
+            V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
         }
         Warning("-> binname = %s\n", realbinname);
         void*          mbase = nullptr;
