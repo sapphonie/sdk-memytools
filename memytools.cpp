@@ -167,7 +167,14 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
                 V_snprintf(realbinname, sizeof(realbinname), "%s.so",       binname);
             // server only
             #else
-                V_snprintf(realbinname, sizeof(realbinname), "%s_srv.so",   binname);
+                if (engine->IsDedicatedServer())
+                {
+                    V_snprintf(realbinname, sizeof(realbinname), "%s_srv.so", binname);
+                }
+                else
+                {
+                    V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
+                }
             #endif
         }
         // linux loads libtier0.so and libtier0_srv.so, and they are different. Yay!
@@ -178,7 +185,14 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
                 V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
             // server only
             #else
-                V_snprintf(realbinname, sizeof(realbinname), "lib%s_srv.so", binname);
+                if (engine->IsDedicatedServer())
+                {
+                    V_snprintf(realbinname, sizeof(realbinname), "lib%s_srv.so", binname);
+                }
+                else
+                {
+                    V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
+                }
             #endif
         }
         else
