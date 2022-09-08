@@ -110,10 +110,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         mhandle = GetModuleHandleA(realbinname);
         if (!mhandle)
         {
-            //#ifdef dbging
-                Warning("memytools::InitSingleBin -> Couldn't grab handle for bin %s = %s!\n", binname, realbinname);
-            // #endif
-
+            Error("[MEMY] Couldn't init %s!\n", realbinname);
             return false;
         }
 
@@ -126,15 +123,13 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
 
         if (!mbin->addr || !mbin->size)
         {
-            #ifdef memydbg
-                Warning("memy::InitSingleBin -> something fucking EXPLODED\n");
-            #endif
+            Error("[MEMY] Couldn't init %s; addr = %x, size = %i!\n", realbinname, mbin->addr, mbin->size);
 
             return false;
         }
 
         #ifdef memydbg
-            Warning("memy::InitSingleBin -> mbase %x, msize %i\n", mbin->addr, mbin->size);
+            Warning("memy::InitSingleBin -> name %s, mbase %x, msize %i\n", realbinname, mbin->addr, mbin->size);
         #endif
 
     #else
@@ -181,19 +176,21 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
             V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
         }
 
-        Warning("-> binname = %s\n", realbinname);
         void*          mbase = nullptr;
         size_t         msize = 0;
         if (GetModuleInformation(realbinname, &mbase, &msize))
         {
-            #ifdef memydbg
-                Warning("memy::InitSingleBin -> GetModuleInformation failed!\n");
-            #endif
+            Error("memy::InitSingleBin -> GetModuleInformation failed for %s!\n", realbinname);
             return false;
         }
 
         mbin->addr = reinterpret_cast<uintptr_t>(mbase);
         mbin->size = msize;
+
+        #ifdef memydbg
+            Warning("memy::InitSingleBin -> name %s, mbase %x, msize %i\n", realbinname, mbin->addr, mbin->size);
+        #endif
+
     #endif
 
     return true;
