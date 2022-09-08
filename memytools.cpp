@@ -271,7 +271,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
         return NULL;
     }
 
-    // iterate thru memory, starting at modbase + i, up to (modbase + i) - sigsize
+    // iterate thru memory, starting at modbase + i, up to (modsize + searchsize) - sigsize
     for (size_t i = 0; i <= (searchsize - sigsize); i++)
     {
         byte* addr = reinterpret_cast<byte*>(startaddr) + i;
