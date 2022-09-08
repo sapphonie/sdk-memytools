@@ -17,12 +17,6 @@
 
 #define memydbg yep
 
-#ifdef memydbg
-    #define goodcolor   Color(000, 255, 000, 255) // green
-    #define okcolor     Color(255, 190, 000, 255) // yellow
-#endif
-
-
 memy_init _memy_init;
 memy_init::memy_init() : CAutoGameSystem("")
 {
@@ -133,14 +127,14 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         if (!mbin->addr || !mbin->size)
         {
             #ifdef memydbg
-                ConColorMsg(okcolor, "memy::InitSingleBin -> something fucking EXPLODED\n");
+                Warning("memy::InitSingleBin -> something fucking EXPLODED\n");
             #endif
 
             return false;
         }
 
         #ifdef memydbg
-            ConColorMsg(okcolor, "memy::InitSingleBin -> mbase %x, msize %i\n", mbin->addr, mbin->size);
+            Warning("memy::InitSingleBin -> mbase %x, msize %i\n", mbin->addr, mbin->size);
         #endif
 
     #else
@@ -225,7 +219,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
         // char at this pos in our pattern
         byte pattern_byte = *(pattern);
 
-        #ifdef dbging
+        #ifdef memydbg
         if (head >= sigsize - 6)
         {
             Warning("memy::DataCompare -> head = %i; char = %.2x\n", head, pattern_byte);
@@ -247,10 +241,6 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
             return false;
         }
     }
-
-    #ifdef memydbg
-        Warning("memy::DataCompare -> Grabbed pattern %p = %s, at %p + modsize\n", data, pattern, data);
-    #endif
 
     return true;
 }
@@ -289,7 +279,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
         if (comparedata(addr, pattern , sigsize))
         {
             #ifdef memydbg
-                ConColorMsg(goodcolor, "memy::FindPattern -> found pattern %s, %i, %i!\n", hexstr, sigsize, offset);
+                Warning("memy::FindPattern -> found pattern %s, %i, %i!\n", hexstr, sigsize, offset);
             #endif
 
             return reinterpret_cast<uintptr_t>(addr + offset);
