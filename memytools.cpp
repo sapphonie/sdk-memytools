@@ -15,7 +15,7 @@
     #define AY_OBFUSCATE
 #endif
 
-#define memydbg yep
+// #define memydbg yep
 
 memy_init _memy_init;
 memy_init::memy_init() : CAutoGameSystem("")
