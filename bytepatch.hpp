@@ -103,8 +103,8 @@ public:
     void Copy()
     {
         // linux needs to be aligned to page sizes
-        void* page          = (void*)( (uint64_t)addr        & ~0xFFF);
-        void* end_page      = (void*)( (uint64_t)addr + size & ~0xFFF);
+        void* page          = (void*)(   (uint64_t)addr          & ~0xFFF);
+        void* end_page      = (void*)( ( (uint64_t)addr + size ) & ~0xFFF);
         uintptr_t mprot_len = (uint64_t)end_page - (uint64_t)page + 0xFFF;
 
         // rwx our mem
