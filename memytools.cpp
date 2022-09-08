@@ -31,7 +31,7 @@ modbin* tier0_bin           = new modbin();
 #ifdef cli
     modbin* vgui_bin        = new modbin();
     modbin* client_bin      = new modbin();
-    modbin* tier0_cli_bin   = new modbin();
+    modbin* gameui_bin      = new modbin();
 #endif
 
 
@@ -44,6 +44,7 @@ char bins_list[][MAX_PATH] =
 #if defined (cli)
     {},             // vgui
     {},             // client
+    {},             // gameui
 #endif
 };
 
@@ -56,6 +57,7 @@ modbin* modbins_list[]
 #if defined (cli)
     vgui_bin,
     client_bin,
+    gameui_bin,
 #endif
 };
 
@@ -69,6 +71,7 @@ memy::memy()
 #if defined (cli)
     V_strncpy(bins_list[3], AY_OBFUSCATE("vguimatsurface"), 32);
     V_strncpy(bins_list[4], AY_OBFUSCATE("client"),         32);
+    V_strncpy(bins_list[5], AY_OBFUSCATE("GameUI"),         32);
 #endif
 }
 

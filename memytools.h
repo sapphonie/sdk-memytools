@@ -40,6 +40,7 @@ extern struct modbin* tier0_bin;
 // client only
 extern struct modbin* vgui_bin;
 extern struct modbin* client_bin;
+extern struct modbin* gameui_bin;
 
 
 class memy_init : public CAutoGameSystem
