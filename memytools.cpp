@@ -1,7 +1,7 @@
 // obfuscate strings in this lib?
 // requires https://github.com/adamyaxley/Obfuscate
 // and >= c++ 14
-// #include <util/obfuscate.h>
+#include <util/obfuscate.h>
 #include "memytools.h"
 
 // insert your defines here
@@ -31,6 +31,7 @@ memy_init::memy_init() : CAutoGameSystem("")
 // shared between client and server
 modbin* engine_bin          = new modbin();
 modbin* server_bin          = new modbin();
+modbin* tier0_bin           = new modbin();
 
 // client only
 #ifdef cli
@@ -39,24 +40,16 @@ modbin* server_bin          = new modbin();
     modbin* tier0_cli_bin   = new modbin();
 #endif
 
-// server only
-#ifdef srv
-    modbin* tier0_srv_bin   = new modbin();
-#endif
-
 
 char bins_list[][MAX_PATH] =
 {
     {},             // engine
     {},             // server
+    {},             // tier0
 // client
 #if defined (cli)
     {},             // vgui
     {},             // client
-    {},             // tier0_cli
-// server
-#else
-    {},             // tier0_srv
 #endif
 };
 
@@ -64,14 +57,11 @@ modbin* modbins_list[]
 {
     engine_bin,
     server_bin,
+    tier0_bin,
 // client
 #if defined (cli)
     vgui_bin,
     client_bin,
-    tier0_cli_bin,
-// server
-#else 
-    tier0_srv_bin,
 #endif
 };
 
@@ -80,14 +70,11 @@ memy::memy()
 {
     V_strncpy(bins_list[0], AY_OBFUSCATE("engine"),         32);
     V_strncpy(bins_list[1], AY_OBFUSCATE("server"),         32);
-// client only
+    V_strncpy(bins_list[1], AY_OBFUSCATE("tier0"),          32);
+    // client only
 #if defined (cli)
     V_strncpy(bins_list[2], AY_OBFUSCATE("vguimatsurface"), 32);
     V_strncpy(bins_list[3], AY_OBFUSCATE("client"),         32);
-    V_strncpy(bins_list[4], AY_OBFUSCATE("tier0"),          32);
-// server only
-#else
-    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          32);
 #endif
 }
 
@@ -164,7 +151,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         {
             // client only
             #if defined (cli)
-                V_snprintf(realbinname, sizeof(realbinname), "%s.so",       binname);
+                V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
             // server only
             #else
                 if (engine->IsDedicatedServer())
@@ -178,7 +165,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
             #endif
         }
         // linux loads libtier0.so and libtier0_srv.so, and they are different. Yay!
-        else if (strstr(binname, "tier0"))
+        else if (strcmp(binname, "tier0") == 0)
         {
             // client only
             #if defined (cli)
@@ -199,6 +186,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         {
             V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
         }
+
         Warning("-> binname = %s\n", realbinname);
         void*          mbase = nullptr;
         size_t         msize = 0;
