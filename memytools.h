@@ -31,11 +31,18 @@ struct modbin
     size_t    size = 0;
 };
 
+
+// shared between client and server
 extern struct modbin* engine_bin;
-extern struct modbin* client_bin;
 extern struct modbin* server_bin;
+
+// client only
 extern struct modbin* vgui_bin;
-extern struct modbin* tier0_bin;
+extern struct modbin* client_bin;
+extern struct modbin* tier0_cli_bin;
+
+// server only
+extern struct modbin* tier0_srv_bin;
 
 class memy_init : public CAutoGameSystem
 {

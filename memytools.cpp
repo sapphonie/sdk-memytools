@@ -29,20 +29,21 @@ memy_init::memy_init() : CAutoGameSystem("")
 }
 
 // shared between client and server
-modbin* engine_bin     = new modbin();
-modbin* server_bin     = new modbin();
-modbin* tier0_bin      = new modbin();
-
-// server only
-#ifdef srv
-modbin* tier0_srv_bin  = new modbin();
-#endif
+modbin* engine_bin          = new modbin();
+modbin* server_bin          = new modbin();
 
 // client only
 #ifdef cli
-modbin* vgui_bin       = new modbin();
-modbin* client_bin     = new modbin();
+    modbin* vgui_bin        = new modbin();
+    modbin* client_bin      = new modbin();
+    modbin* tier0_cli_bin   = new modbin();
 #endif
+
+// server only
+#ifdef srv
+    modbin* tier0_srv_bin   = new modbin();
+#endif
+
 
 char bins_list[][MAX_PATH] =
 {
@@ -86,7 +87,7 @@ memy::memy()
     V_strncpy(bins_list[4], AY_OBFUSCATE("tier0"),          32);
 // server only
 #else
-    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0_srv"),      32);
+    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          32);
 #endif
 }
 
@@ -172,7 +173,13 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         // linux loads libtier0.so and libtier0_srv.so, and they are different. Yay!
         else if (strstr(binname, "tier0"))
         {
-            V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
+            // client only
+            #if defined (cli)
+                V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
+            // server only
+            #else
+                V_snprintf(realbinname, sizeof(realbinname), "lib%s_srv.so", binname);
+            #endif
         }
         else
         {
