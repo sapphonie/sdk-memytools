@@ -367,8 +367,9 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
 
         if (strcmp(basename(mapname), name) == 0 && perm[0] == 'r' && perm[2] == 'x')
         {
-            Warning("perm = %s\n", perm);
-
+            #ifdef memydbg
+                Warning("perm = %s\n", perm);
+            #endif
             *base = (void*)begin;
             *length = (size_t)end-begin;
             fclose(f);
