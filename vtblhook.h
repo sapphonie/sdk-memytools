@@ -83,16 +83,16 @@ int GetFunctionOffset( FUNC_TYPE func )
 }
 
 template<typename F, typename H>
-void *HookVTable( void *pObject, F pFunc, H hook )
+F HookVTable( void *pObject, F pFunc, H hook )
 {
 	void **vtbl = *(void ***)pObject;
 	int index = GetFunctionOffset( pFunc );
 	void **vtbl_func = (void **)vtbl[index];
-	void *original = *vtbl_func;
 
 	memy::SetMemoryProtection( vtbl_func, sizeof( void * ), MEM_READ|MEM_WRITE|MEM_EXEC );
 
-	*(H *)vtbl_func = hook;
+	F original = *(F *)vtbl_func;
+	*vtbl_func = *(void **)&hook;
 
 	memy::SetMemoryProtection( vtbl_func, sizeof( void * ), MEM_READ|MEM_EXEC );
 
