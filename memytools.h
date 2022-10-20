@@ -25,6 +25,10 @@
 #include <cbase.h>
 typedef unsigned char byte;
 
+#ifdef PostMessage
+	#undef PostMessage
+#endif
+
 struct modbin
 {
     uintptr_t addr = NULL;
