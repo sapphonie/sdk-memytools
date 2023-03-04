@@ -1,24 +1,18 @@
-// obfuscate strings in this lib?
-// requires https://github.com/adamyaxley/Obfuscate
-// and >= c++ 14
-// #include <util/obfuscate.h>
+// if you want to obfuscate strings in this lib with constexpr obfuscation
+// define _OBFUSCATE to AY_OBFUSCATE or whatever other lib you want
+// https://github.com/adamyaxley/Obfuscate
 #include "memytools.h"
 
-// insert your defines here
-#if defined (OF_CLIENT_DLL) || defined (TF_CLASSIC_CLIENT)
-    #define cli yep
-#elif defined (OF_DLL) || defined (TF_CLASSIC)
-    #define srv yep
+// I define this in tier0 util.h
+#ifndef _OBFUSCATE
+    #define _OBFUSCATE
 #endif
 
-#ifndef AY_OBFUSCATE
-    #define AY_OBFUSCATE
-#endif
 
 // #define memydbg yep
 
 memy_init _memy_init;
-memy_init::memy_init() : CAutoGameSystem("")
+memy_init::memy_init() : CAutoGameSystem(_OBFUSCATE("_"))
 {
 }
 
@@ -28,7 +22,7 @@ modbin* server_bin          = new modbin();
 modbin* tier0_bin           = new modbin();
 
 // client only
-#ifdef cli
+#if defined (CLIENT_DLL)
     modbin* vgui_bin        = new modbin();
     modbin* client_bin      = new modbin();
     modbin* gameui_bin      = new modbin();
@@ -41,7 +35,7 @@ char bins_list[][MAX_PATH] =
     {},             // server
     {},             // tier0
 // client
-#if defined (cli)
+#if defined (CLIENT_DLL)
     {},             // vgui
     {},             // client
     {},             // gameui
@@ -54,7 +48,7 @@ modbin* modbins_list[]
     server_bin,
     tier0_bin,
 // client
-#if defined (cli)
+#if defined (CLIENT_DLL)
     vgui_bin,
     client_bin,
     gameui_bin,
@@ -64,14 +58,14 @@ modbin* modbins_list[]
 memy _memy;
 memy::memy()
 {
-    V_strncpy(bins_list[0], AY_OBFUSCATE("engine"),         32);
-    V_strncpy(bins_list[1], AY_OBFUSCATE("server"),         32);
-    V_strncpy(bins_list[2], AY_OBFUSCATE("tier0"),          32);
+    V_strncpy(bins_list[0], _OBFUSCATE("engine"),         32);
+    V_strncpy(bins_list[1], _OBFUSCATE("server"),         32);
+    V_strncpy(bins_list[2], _OBFUSCATE("tier0"),          32);
     // client only
-#if defined (cli)
-    V_strncpy(bins_list[3], AY_OBFUSCATE("vguimatsurface"), 32);
-    V_strncpy(bins_list[4], AY_OBFUSCATE("client"),         32);
-    V_strncpy(bins_list[5], AY_OBFUSCATE("GameUI"),         32);
+#if defined (CLIENT_DLL)
+    V_strncpy(bins_list[3], _OBFUSCATE("vguimatsurface"), 32);
+    V_strncpy(bins_list[4], _OBFUSCATE("client"),         32);
+    V_strncpy(bins_list[5], _OBFUSCATE("GameUI"),         32);
 #endif
 }
 
@@ -94,7 +88,7 @@ bool memy::InitAllBins()
     {
         if (!InitSingleBin(bins_list[ibin], modbins_list[ibin]))
         {
-            Error("[MEMY] Couldn't init %s!", bins_list[ibin]);
+            Error(_OBFUSCATE("[MEMY] Couldn't init %s!"), bins_list[ibin]);
         }
     }
 
@@ -107,13 +101,13 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
     char realbinname[256] = {};
 
     #ifdef _WIN32
-        V_snprintf(realbinname, sizeof(realbinname), "%s.dll", binname);
+        V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("%s.dll"), binname);
 
         HMODULE mhandle;
         mhandle = GetModuleHandleA(realbinname);
         if (!mhandle)
         {
-            Error("[MEMY] Couldn't init %s!\n", realbinname);
+            Error(_OBFUSCATE("[MEMY] Couldn't init %s!\n"), realbinname);
             return false;
         }
 
@@ -126,64 +120,64 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
 
         if (!mbin->addr || !mbin->size)
         {
-            Error("[MEMY] Couldn't init %s; addr = %x, size = %i!\n", realbinname, mbin->addr, mbin->size);
+            Error(_OBFUSCATE("[MEMY] Couldn't init %s; addr = %x, size = %i!\n"), realbinname, mbin->addr, mbin->size);
 
             return false;
         }
 
         #ifdef memydbg
-            Warning("memy::InitSingleBin -> name %s, mbase %x, msize %i\n", realbinname, mbin->addr, mbin->size);
+            Warning(_OBFUSCATE("memy::InitSingleBin -> name %s, mbase %x, msize %i\n"), realbinname, mbin->addr, mbin->size);
         #endif
 
     #else
         // binname + .so
 
         // funny special cases
-        if (strcmp(binname, "engine") == 0)
+        if (strcmp(binname, _OBFUSCATE("engine") == 0)
         {
             // client only
-            #if defined (cli)
-                V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
+            #if defined (CLIENT_DLL)
+                V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("%s.so"), binname);
             // server only
             #else
                 if (engine->IsDedicatedServer())
                 {
-                    V_snprintf(realbinname, sizeof(realbinname), "%s_srv.so", binname);
+                    V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("%s_srv.so"), binname);
                 }
                 else
                 {
-                    V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
+                    V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("%s.so"), binname);
                 }
             #endif
         }
         // linux loads libtier0.so and libtier0_srv.so, and they are different. Yay!
-        else if (strcmp(binname, "tier0") == 0)
+        else if (strcmp(binname, _OBFUSCATE("tier0")) == 0)
         {
             // client only
-            #if defined (cli)
-                V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
+            #if defined (CLIENT_DLL)
+                V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("lib%s.so"), binname);
             // server only
             #else
                 if (engine->IsDedicatedServer())
                 {
-                    V_snprintf(realbinname, sizeof(realbinname), "lib%s_srv.so", binname);
+                    V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("lib%s_srv.so"), binname);
                 }
                 else
                 {
-                    V_snprintf(realbinname, sizeof(realbinname), "lib%s.so", binname);
+                    V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("lib%s.so"), binname);
                 }
             #endif
         }
         else
         {
-            V_snprintf(realbinname, sizeof(realbinname), "%s.so", binname);
+            V_snprintf(realbinname, sizeof(realbinname), _OBFUSCATE("%s.so"), binname);
         }
 
         void*          mbase = nullptr;
         size_t         msize = 0;
         if (GetModuleInformation(realbinname, &mbase, &msize))
         {
-            Error("memy::InitSingleBin -> GetModuleInformation failed for %s!\n", realbinname);
+            Error(_OBFUCSCATE("memy::InitSingleBin -> GetModuleInformation failed for %s!\n"), realbinname);
             return false;
         }
 
@@ -191,7 +185,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         mbin->size = msize;
 
         #ifdef memydbg
-            Warning("memy::InitSingleBin -> name %s, mbase %x, msize %i\n", realbinname, mbin->addr, mbin->size);
+            Warning(_OBFUSCATE("memy::InitSingleBin -> name %s, mbase %x, msize %i\n"), realbinname, mbin->addr, mbin->size);
         #endif
 
     #endif
@@ -204,7 +198,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
     if (!data || !pattern || !sigsize)
     {
         #ifdef memydbg
-            Warning("memy::DataCompare -> Couldn't grab data %p, pattern %p, nor patternsize %i\n", data, pattern, sigsize);
+            Warning(_OBFUSCATE("memy::DataCompare -> Couldn't grab data %p, pattern %p, nor patternsize %i\n"), data, pattern, sigsize);
         #endif
         return false;
     }
@@ -222,7 +216,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
         #ifdef memydbg
         if (head >= sigsize - 6)
         {
-            Warning("memy::DataCompare -> head = %i; char = %.2x\n", head, pattern_byte);
+            Warning(_OBFUSCATE("memy::DataCompare -> head = %i; char = %.2x\n"), head, pattern_byte);
         }
         #endif
 
@@ -248,7 +242,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
 //---------------------------------------------------------------------------------------------------------
 // Finds a pattern of bytes in the engine memory given a signature and a mask
 // Returns the address of the first (and hopefully only) match with an optional offset, otherwise nullptr
-//---------------------------------------------------------------------------------------------------------    
+//---------------------------------------------------------------------------------------------------------
 uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* pattern, size_t sigsize, size_t offset)
 {
     #ifdef memydbg
@@ -265,7 +259,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
     if (!startaddr || !searchsize || !pattern)
     {
         #ifdef memydbg
-            Warning("memy::FindPattern -> Couldn't grab modbase %x, modsize %i, or pattern %p = %s\n", startaddr, searchsize, pattern, hexstr);
+            Warning(_OBFUSCATE("memy::FindPattern -> Couldn't grab modbase %x, modsize %i, or pattern %p = %s\n"), startaddr, searchsize, pattern, hexstr);
         #endif
 
         return NULL;
@@ -279,7 +273,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
         if (comparedata(addr, pattern , sigsize))
         {
             #ifdef memydbg
-                Warning("memy::FindPattern -> found pattern %s, %i, %i!\n", hexstr, sigsize, offset);
+                Warning(_OBFUSCATE("memy::FindPattern -> found pattern %s, %i, %i!\n"), hexstr, sigsize, offset);
             #endif
 
             return reinterpret_cast<uintptr_t>(addr + offset);
@@ -287,7 +281,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
     }
 
     #ifdef memydbg
-        Warning("memy::FindPattern -> Failed, pattern %s, %i, %i!\n", hexstr, sigsize, offset);
+        Warning(_OBFUSCATE("memy::FindPattern -> Failed, pattern %s, %i, %i!\n"), hexstr, sigsize, offset);
     #endif
 
     return NULL;
@@ -340,14 +334,14 @@ bool memy::SetMemoryProtection(void* addr, size_t protlen, int wantprot)
 int memy::GetModuleInformation(const char *name, void **base, size_t *length)
 {
     // this is the only way to do this on linux, lol
-    FILE *f = fopen("/proc/self/maps", "r");
+    FILE *f = fopen(_OBFUSCATE("/proc/self/maps"), _OBFUSCATE("r"));
     if (!f)
     {
-        Warning("memy::GetModInfo -> Couldn't get proc->self->maps\n");
+        Warning(_OBFUSCATE("memy::GetModInfo -> Couldn't get proc->self->maps\n"));
         return 1;
     }
 
-    char buf[PATH_MAX+100];
+    char buf[PATH_MAX+100] = {};
     while (!feof(f))
     {
         if (!fgets(buf, sizeof(buf), f))
@@ -363,12 +357,12 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
 
         char perm[5];
         unsigned long begin, end;
-        sscanf(buf, "%lx-%lx %4s", &begin, &end, perm);
+        sscanf(buf, _OBFUSCATE("%lx-%lx %4s"), &begin, &end, perm);
 
         if (strcmp(basename(mapname), name) == 0 && perm[0] == 'r' && perm[2] == 'x')
         {
             #ifdef memydbg
-                Warning("perm = %s\n", perm);
+                Warning(_OBFUSCATE("perm = %s\n"), perm);
             #endif
             *base = (void*)begin;
             *length = (size_t)end-begin;
@@ -378,7 +372,7 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
     }
 
     fclose(f);
-    Warning("memy::GetModInfo -> Couldn't find info for modname %s\n", name);
+    Warning(_OBFUSCATE("memy::GetModInfo -> Couldn't find info for modname %s\n"), name);
     return 2;
 }
 #endif
