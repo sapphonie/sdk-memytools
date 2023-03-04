@@ -8,7 +8,6 @@
     #define _OBFUSCATE
 #endif
 
-
 // #define memydbg yep
 
 memy_init _memy_init;
@@ -126,14 +125,14 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         }
 
         #ifdef memydbg
-            Warning(_OBFUSCATE("memy::InitSingleBin -> name %s, mbase %x, msize %i\n"), realbinname, mbin->addr, mbin->size);
+            Warning("memy::InitSingleBin -> name %s, mbase %x, msize %i\n", realbinname, mbin->addr, mbin->size);
         #endif
 
     #else
         // binname + .so
 
         // funny special cases
-        if (strcmp(binname, _OBFUSCATE("engine") == 0)
+        if (strcmp(binname, _OBFUSCATE("engine")) == 0)
         {
             // client only
             #if defined (CLIENT_DLL)
@@ -177,7 +176,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         size_t         msize = 0;
         if (GetModuleInformation(realbinname, &mbase, &msize))
         {
-            Error(_OBFUCSCATE("memy::InitSingleBin -> GetModuleInformation failed for %s!\n"), realbinname);
+            Error(_OBFUSCATE("memy::InitSingleBin -> GetModuleInformation failed for %s!\n"), realbinname);
             return false;
         }
 
@@ -185,7 +184,7 @@ bool memy::InitSingleBin(const char* binname, modbin* mbin)
         mbin->size = msize;
 
         #ifdef memydbg
-            Warning(_OBFUSCATE("memy::InitSingleBin -> name %s, mbase %x, msize %i\n"), realbinname, mbin->addr, mbin->size);
+            Warning("memy::InitSingleBin -> name %s, mbase %x, msize %i\n", realbinname, mbin->addr, mbin->size);
         #endif
 
     #endif
@@ -198,7 +197,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
     if (!data || !pattern || !sigsize)
     {
         #ifdef memydbg
-            Warning(_OBFUSCATE("memy::DataCompare -> Couldn't grab data %p, pattern %p, nor patternsize %i\n"), data, pattern, sigsize);
+            Warning("memy::DataCompare -> Couldn't grab data %p, pattern %p, nor patternsize %i\n", data, pattern, sigsize);
         #endif
         return false;
     }
@@ -216,7 +215,7 @@ inline bool memy::comparedata(const byte* data, const char* pattern, size_t sigs
         #ifdef memydbg
         if (head >= sigsize - 6)
         {
-            Warning(_OBFUSCATE("memy::DataCompare -> head = %i; char = %.2x\n"), head, pattern_byte);
+            Warning("memy::DataCompare -> head = %i; char = %.2x\n", head, pattern_byte);
         }
         #endif
 
@@ -259,7 +258,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
     if (!startaddr || !searchsize || !pattern)
     {
         #ifdef memydbg
-            Warning(_OBFUSCATE("memy::FindPattern -> Couldn't grab modbase %x, modsize %i, or pattern %p = %s\n"), startaddr, searchsize, pattern, hexstr);
+            Warning("memy::FindPattern -> Couldn't grab modbase %x, modsize %i, or pattern %p = %s\n", startaddr, searchsize, pattern, hexstr);
         #endif
 
         return NULL;
@@ -273,7 +272,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
         if (comparedata(addr, pattern , sigsize))
         {
             #ifdef memydbg
-                Warning(_OBFUSCATE("memy::FindPattern -> found pattern %s, %i, %i!\n"), hexstr, sigsize, offset);
+                Warning("memy::FindPattern -> found pattern %s, %i, %i!\n", hexstr, sigsize, offset);
             #endif
 
             return reinterpret_cast<uintptr_t>(addr + offset);
@@ -281,7 +280,7 @@ uintptr_t memy::FindPattern(uintptr_t startaddr, size_t searchsize, const char* 
     }
 
     #ifdef memydbg
-        Warning(_OBFUSCATE("memy::FindPattern -> Failed, pattern %s, %i, %i!\n"), hexstr, sigsize, offset);
+        Warning("memy::FindPattern -> Failed, pattern %s, %i, %i!\n", hexstr, sigsize, offset);
     #endif
 
     return NULL;
@@ -337,7 +336,7 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
     FILE *f = fopen(_OBFUSCATE("/proc/self/maps"), _OBFUSCATE("r"));
     if (!f)
     {
-        Warning(_OBFUSCATE("memy::GetModInfo -> Couldn't get proc->self->maps\n"));
+        Warning("memy::GetModInfo -> Couldn't get proc->self->maps\n");
         return 1;
     }
 
@@ -362,7 +361,7 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
         if (strcmp(basename(mapname), name) == 0 && perm[0] == 'r' && perm[2] == 'x')
         {
             #ifdef memydbg
-                Warning(_OBFUSCATE("perm = %s\n"), perm);
+                Warning("perm = %s\n", perm);
             #endif
             *base = (void*)begin;
             *length = (size_t)end-begin;
@@ -372,7 +371,7 @@ int memy::GetModuleInformation(const char *name, void **base, size_t *length)
     }
 
     fclose(f);
-    Warning(_OBFUSCATE("memy::GetModInfo -> Couldn't find info for modname %s\n"), name);
+    Warning("memy::GetModInfo -> Couldn't find info for modname %s\n", name);
     return 2;
 }
 #endif
